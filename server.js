@@ -1,20 +1,29 @@
+var path = require('path');
 var express = require('express');
+var webpack = require('webpack');
+var config = require('./webpack.config');
 
-
-// Create our app
+var port = 3000;
 var app = express();
-const PORT = process.env.PORT || 3000;
+var compiler = webpack(config);
 
-app.use(function(req, res, next) {
-    if (req.headers['x-forwarded-proto'] === 'https') {
-        res.redirect('http://' + req.hostname + req.url);
-    } else {
-        next();
-    }
-})
+app.use(require('webpack-dev-middleware')(compiler, {
+  noInfo: true,
+  publicPath: config.output.publicPath,
+}));
+
+app.use(require('webpack-hot-middleware')(compiler));
+
+// app.get('*', function (req, res) {
+//   res.sendFile(path.join(__dirname, '/public/index.html'));
+// });
 
 app.use(express.static('public'));
 
-app.listen(PORT, function() {
-    console.log('Express server is up on port ' + PORT);
+app.listen(port, function onAppListening(err) {
+  if (err) {
+    console.error(err);
+  } else {
+    console.info('==> 🚧  Webpack development server listening on port %s', port);
+  }
 });
